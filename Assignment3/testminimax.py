@@ -3,6 +3,12 @@ import random
 import unittest 
 from connect4 import Board
 
+def otherPlayer(player):
+	if player == 'X':
+		return 'O'
+	else:
+		return 'X'
+
 def minimax(board, player, ply):
 	"""
 	Function receives an instances of the Board class, the player who is to act at this state (either X or O),
@@ -14,18 +20,42 @@ def minimax(board, player, ply):
 	3. the total number of nodes expanded to find the optimal move 
 	"""
 
-	"""
-	1: if n ∈ Z then
-	2: return U(n)
-	3: b ← {−∞, · · · , −∞}
-	4: for each a ∈ A(n) do
-	5: v ← BI(T(n, a))
-	6: if v[P(n)] > b[P(n)] then
-	7: b ← v
-	8: return b
+	if ply == 0:
+		if board.is_terminal():
+			# +1 if it is a win for ‘X’,-1 if it is a win for ‘O’,and 0 if it is a draw
+			gameValue = board.game_value()
+			return gameValue, 0, 1
+		else:
+			return 0, 0, 1
+
+		
+
+
+	u = [0, 1, 2, 3, 4, 5, 6]
+
 	
-	"""
-	return None, None, None
+	for a in board.available_moves():
+		board.perform_move(a, player)
+		
+		score, move, expansions = minimax(board, otherPlayer(player), ply - 1)	
+		board.undo_move(a)
+		if board.is_terminal():
+			# +1 if it is a win for ‘X’,-1 if it is a win for ‘O’,and 0 if it is a draw
+			gameValue = board.game_value()
+			return gameValue, 0, 1
+
+		
+		u[a] = score
+			
+
+
+	if player == 'X':
+		score = max(u)
+	else:
+		score = min(u)
+
+
+	return score, u.index(score), expansions + 1
 
 class TestMinMaxDepth1(unittest.TestCase):
 
@@ -149,6 +179,7 @@ class TestMinMaxDepth5(unittest.TestCase):
 		b = Board()
 		player = b.create_board('322411004326')
 		bestScore, bestMove, expansions = minimax(b, player, 5)
+		print("bm: ", bestMove, "bs: ", bestScore, "player: ", player)
 		self.assertEqual(bestScore, 1)
 		self.assertEqual(bestMove, 3)
 
@@ -156,6 +187,7 @@ class TestMinMaxDepth5(unittest.TestCase):
 		b = Board()
 		player = b.create_board('3541226000220')
 		bestScore, bestMove, expansions = minimax(b, player, 5)
+		print("bm: ", bestMove, "bs: ", bestScore, "player: ", player)
 		self.assertEqual(bestScore, -1)
 		self.assertEqual(bestMove, 4)
 
@@ -163,6 +195,7 @@ class TestMinMaxDepth5(unittest.TestCase):
 		b = Board()
 		player = b.create_board('43231033655')
 		bestScore, bestMove, expansions = minimax(b, player, 5)
+		print("bm: ", bestMove, "bs: ", bestScore, "player: ", player)
 		self.assertEqual(bestScore, -1)
 		self.assertEqual(bestMove, 1)
 
@@ -170,6 +203,7 @@ class TestMinMaxDepth5(unittest.TestCase):
 		b = Board()
 		player = b.create_board('345641411335')
 		bestScore, bestMove, expansions = minimax(b, player, 5)
+		print("bm: ", bestMove, "bs: ", bestScore, "player: ", player)
 		self.assertEqual(bestScore, 1)
 		self.assertEqual(bestMove, 5)
 
@@ -177,6 +211,7 @@ class TestMinMaxDepth5(unittest.TestCase):
 		b = Board()
 		player = b.create_board('336604464463')
 		bestScore, bestMove, expansions = minimax(b, player, 5)
+		print("bm: ", bestMove, "bs: ", bestScore, "player: ", player)
 		self.assertEqual(bestScore, 1)
 		self.assertEqual(bestMove, 3)		
 

@@ -3,6 +3,12 @@ import unittest
 from connect4 import Board
 from math import inf
 
+def otherPlayer(player):
+	if player == 'X':
+		return 'O'
+	else:
+		return 'X'
+
 def alpha_beta(board, player, alpha, beta, ply):
 	"""
 	Function receives an instances of the Board class, the player who is to act at this state (either X or O),
@@ -13,7 +19,45 @@ def alpha_beta(board, player, alpha, beta, ply):
 	2. the optimal move
 	3. the total number of nodes expanded to find the optimal move 
 	"""
-	return None, None, None
+	if ply == 0:
+		if board.is_terminal():
+			# +1 if it is a win for ‘X’,-1 if it is a win for ‘O’,and 0 if it is a draw
+			gameValue = board.game_value()
+			return gameValue, 0, 1
+		else:
+			return 0, 0, 1
+
+	if player == 'X':
+		m = -inf
+	elif player =='O':
+		m = inf
+
+	for a in board.available_moves():
+		if player == 'X':
+			score = 1
+			board.perform_move(a, player)
+			s, move, expanstoins = alpha_beta(board, otherPlayer(player), alpha, beta, ply - 1)
+			expanstoins += 1
+			m = max(move, m)
+			board.undo_move(a)
+			if m >= beta:
+				return score, m, expanstoins
+			alpha = max(alpha, m)
+		elif player == 'O':
+			score = -1
+			board.perform_move(a, player)
+			s, move, expanstoins = alpha_beta(board, otherPlayer(player), alpha, beta, ply - 1)
+			expanstoins += 1
+			m = min(move, m)
+			board.undo_move(a)
+			if m <= alpha:
+				return score, m, expanstoins
+			
+			beta = min(beta, m)
+	
+
+	
+	return score, m, expanstoins
 
 
 class TestMinMaxDepth1(unittest.TestCase):

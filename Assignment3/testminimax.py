@@ -4,6 +4,9 @@ import unittest
 from connect4 import Board
 
 def otherPlayer(player):
+	"""
+	returns the next player to play
+	"""
 	if player == 'X':
 		return 'O'
 	else:
@@ -19,10 +22,10 @@ def minimax(board, player, ply):
 	2. the optimal move
 	3. the total number of nodes expanded to find the optimal move 
 	"""
-
+	# getting the algorithem to stop at depth 0
 	if ply == 0:
+		# return the score if bord is terminal otherwise return regular inf or -inf score
 		if board.is_terminal():
-			# +1 if it is a win for ‘X’,-1 if it is a win for ‘O’,and 0 if it is a draw
 			gameValue = board.game_value()
 			return gameValue, 0, 1
 		else:
@@ -30,37 +33,37 @@ def minimax(board, player, ply):
 				return inf, 0, 1
 			elif player == 'O':
 				return -inf, 0, 1
-					
+
+	# checking if board is terminal
+	if board.is_terminal():
+		gameValue = board.game_value()
+		return gameValue, 0, 1
+	
 			
 			
 		
-
+	# setting u based on which players turn it is
 	if player == 'X':
 		u = [-inf, -inf, -inf, -inf, -inf, -inf, -inf]
 	elif player == 'O':
 		u = [inf, inf, inf, inf, inf, inf, inf]
 
 	totExp = 0
+	
+	# going through each avalibel action and getting setting score in u based on branches of the tree
 	for a in board.available_moves():
 		board.perform_move(a, player)
-		
 		score, move, expansions = minimax(board, otherPlayer(player), ply - 1)	
 		totExp += expansions
 		board.undo_move(a)
 
 		u[a] = score
-			
+	
+	# setting the score based on which players turn it is
 	if player == 'X':
-		score = 1
 		score = max(u)
 	elif player == 'O':
-		score = -1
 		score = min(u)
-
-
-	
-	
-	# print("player: ", player, "depth: ", ply, u)
 
 	return score, u.index(score), totExp
 
@@ -214,7 +217,8 @@ class TestMinMaxDepth5(unittest.TestCase):
 		b = Board()
 		player = b.create_board('336604464463')
 		bestScore, bestMove, expansions = minimax(b, player, 5)
-		
+		print(b)
+		print(expansions)
 		self.assertEqual(bestScore, 1)
 		self.assertEqual(bestMove, 3)		
 

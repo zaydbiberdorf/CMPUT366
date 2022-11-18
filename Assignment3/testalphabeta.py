@@ -4,6 +4,9 @@ from connect4 import Board
 from math import inf
 
 def otherPlayer(player):
+	"""
+	Returns the next player to play
+	"""
 	if player == 'X':
 		return 'O'
 	else:
@@ -19,45 +22,74 @@ def alpha_beta(board, player, alpha, beta, ply):
 	2. the optimal move
 	3. the total number of nodes expanded to find the optimal move 
 	"""
+	# getting the algorithem to stop at depth 0
 	if ply == 0:
+		# return the score if bord is terminal otherwise return regular inf or -inf score
 		if board.is_terminal():
-			# +1 if it is a win for ‘X’,-1 if it is a win for ‘O’,and 0 if it is a draw
 			gameValue = board.game_value()
 			return gameValue, 0, 1
 		else:
-			return 0, 0, 1
+			if player == 'X':
+				return inf, 0, 1
+			elif player =='O':
+				return -inf, 0, 1
 
+	# checking if board is terminal
+	if board.is_terminal():
+			gameValue = board.game_value()
+			return gameValue, 0, 1
+
+	# setting u and m based on which players turn it is
 	if player == 'X':
 		m = -inf
+		u = [-inf, -inf, -inf, -inf, -inf, -inf, -inf]
 	elif player =='O':
 		m = inf
+		u = [inf, inf, inf, inf, inf, inf, inf]
 
+	totExp = 0
+
+	# going through each avalibel action and getting setting score in u based on branches of the tree
 	for a in board.available_moves():
 		if player == 'X':
+			# set score
 			score = 1
 			board.perform_move(a, player)
 			s, move, expanstoins = alpha_beta(board, otherPlayer(player), alpha, beta, ply - 1)
-			expanstoins += 1
-			m = max(move, m)
+			totExp += expanstoins
+			# get m value
+			m = max(s, m)
 			board.undo_move(a)
+			# determine what to return
 			if m >= beta:
-				return score, m, expanstoins
+				return score, a, totExp
+			# setting alpha 
 			alpha = max(alpha, m)
 		elif player == 'O':
 			score = -1
 			board.perform_move(a, player)
 			s, move, expanstoins = alpha_beta(board, otherPlayer(player), alpha, beta, ply - 1)
-			expanstoins += 1
-			m = min(move, m)
+			totExp += expanstoins
+			# get m value
+			m = min(s, m)
 			board.undo_move(a)
+			# determine what to return
 			if m <= alpha:
-				return score, m, expanstoins
-			
+				return score, a, totExp
+			# setting beta 
 			beta = min(beta, m)
-	
 
+		u[a] = s
 	
-	return score, m, expanstoins
+	# determine optimal move
+	if score in u:
+		move = u.index(score)
+	elif 0 in u:
+		move = u.index(0)
+	else: 
+		return 0, 0, 0
+
+	return score, move, totExp
 
 
 class TestMinMaxDepth1(unittest.TestCase):
@@ -209,7 +241,6 @@ class TestMinMaxDepth5(unittest.TestCase):
 		b = Board()
 		player = b.create_board('336604464463')
 		bestScore, bestMove, expansions = alpha_beta(b, player, -inf, inf, 5)
-
 		self.assertEqual(bestScore, 1)
 		self.assertEqual(bestMove, 3)			
 

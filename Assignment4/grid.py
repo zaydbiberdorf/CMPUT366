@@ -132,44 +132,52 @@ class Grid:
                     return False
         return True
 
+
     def remove_domain_row(self, row, column):
         """
-        Given a cell on the grid (row and column) whose domain is of size 1 (the variable has its
+        Given a matrix (grid) and a cell on the grid (row and column) whose domain is of size 1 (the variable has its
         value assigned), this method removes the value of (row, column) from all variables in the same row. 
         """
+        variables_assigned = []
 
         for j in range(self.get_width()):
             if j != column:
                 new_domain = self.get_cells()[row][j].replace(self.get_cells()[row][column], '')
 
                 if len(new_domain) == 0:
-                    return True
+                    return None, True
+
+                if len(new_domain) == 1 and len(self.get_cells()[row][j]) > 1:
+                    variables_assigned.append((row, j))
 
                 self.get_cells()[row][j] = new_domain
         
-        return False
+        return variables_assigned, False
 
     def remove_domain_column(self, row, column):
         """
-        Given a cell on the grid (row and column) whose domain is of size 1 (the variable has its
+        Given a matrix (grid) and a cell on the grid (row and column) whose domain is of size 1 (the variable has its
         value assigned), this method removes the value of (row, column) from all variables in the same column. 
         """
+        variables_assigned = []
+
         for j in range(self.get_width()):
             if j != row:
                 new_domain = self.get_cells()[j][column].replace(self.get_cells()[row][column], '')
                 
                 if len(new_domain) == 0:
-                    return True
+                    return None, True
+
+                if len(new_domain) == 1 and len(self.get_cells()[j][column]) > 1:
+                    variables_assigned.append((j, column))
 
                 self.get_cells()[j][column] = new_domain
 
-        return False
+        return variables_assigned, False
 
     def remove_domain_unit(self, row, column):
-        """
-        Given a cell on the grid (row and column) whose domain is of size 1 (the variable has its
-        value assigned), this method removes the value of (row, column) from all variables in the same unit. 
-        """
+        variables_assigned = []
+
         row_init = (row // 3) * 3
         column_init = (column // 3) * 3
 
@@ -181,7 +189,42 @@ class Grid:
                 new_domain = self.get_cells()[i][j].replace(self.get_cells()[row][column], '')
 
                 if len(new_domain) == 0:
-                    return True
+                    return None, True
+
+                if len(new_domain) == 1 and len(self.get_cells()[i][j]) > 1:
+                    variables_assigned.append((i, j))
 
                 self.get_cells()[i][j] = new_domain
-        return False
+        return variables_assigned, False
+
+    def is_solved_deep(self):
+        """
+        Returns True if the puzzle is solved and False otherwise. 
+        """
+        for i in range(self._width):
+            for j in range(self._width):
+                if not self.is_value_consistent(self._cells[i][j], i, j) or len(self._cells[i][j]) > 1:
+                    return False
+        return True
+
+    def is_value_consistent(self, value, row, column):
+        for i in range(self.get_width()):
+            if i == column: continue
+            if self.get_cells()[row][i] == value:
+                return False
+        
+        for i in range(self.get_width()):
+            if i == row: continue
+            if self.get_cells()[i][column] == value:
+                return False
+
+        row_init = (row // 3) * 3
+        column_init = (column // 3) * 3
+
+        for i in range(row_init, row_init + 3):
+            for j in range(column_init, column_init + 3):
+                if i == row and j == column:
+                    continue
+                if self.get_cells()[i][j] == value:
+                    return False
+        return True
